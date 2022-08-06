@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="6dd4b640-0676-4c28-8723-8042e3eb45f3" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeStyleSettingsInfer">
+    <option name="done" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectCodeStyleSettingsMigration">
+    <option name="version" value="1" />
+  </component>
+  <component name="ProjectId" id="1pkFRq7L2PGoZmb5OaQYnzb3Qdz" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.assignment.sm.util" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.assignment.sm.exception" />
+      <recent name="com.assignment.sm.repository" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/src/test/resources" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="mvn -U clean" />
+      <command value="mvn install" />
+      <command value="mvn clean compiler:testCompile surefire:test " />
+      <command value="mvn clean" />
+      <command value="mvn package" />
+    </option>
+  </component>
+  <component name="RunManager" selected="Application.BitcoinExchangeService">
+    <configuration name="BitcoinExchangeService" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.assignment.sm.BitcoinExchangeService" />
+      <module name="bitcoin-exchange-service" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.assignment.sm.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExchangeRateServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="bitcoin-exchange-service" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.assignment.sm.service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.assignment.sm.service" />
+      <option name="MAIN_CLASS_NAME" value="com.assignment.sm.service.ExchangeRateServiceTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExchangeRateUtilTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="bitcoin-exchange-service" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.assignment.sm.util.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.assignment.sm.util" />
+      <option name="MAIN_CLASS_NAME" value="com.assignment.sm.util.ExchangeRateUtilTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="HistoricalRateCacheServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="bitcoin-exchange-service" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.assignment.sm.service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.assignment.sm.service" />
+      <option name="MAIN_CLASS_NAME" value="com.assignment.sm.service.HistoricalRateCacheServiceTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RestServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="bitcoin-exchange-service" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.assignment.sm.service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.assignment.sm.service" />
+      <option name="MAIN_CLASS_NAME" value="com.assignment.sm.service.RestServiceTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType" factoryName="Kotlin">
+      <module name="bitcoin-exchange-service" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="WORKING_DIRECTORY" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType" factoryName="Kotlin script">
+      <module name="bitcoin-exchange-service" />
+      <option name="filePath" />
+      <option name="vmParameters" />
+      <option name="alternativeJrePath" />
+      <option name="programParameters" />
+      <option name="passParentEnvs" value="true" />
+      <option name="workingDirectory" />
+      <option name="isAlternativeJrePathEnabled" value="false" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="WORKING_DIRECTORY" />
+      <option name="filePath" />
+      <option name="vmParameters" />
+      <option name="alternativeJrePath" />
+      <option name="programParameters" />
+      <option name="passParentEnvs" value="true" />
+      <option name="workingDirectory" />
+      <option name="isAlternativeJrePathEnabled" value="false" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="WORKING_DIRECTORY" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.BitcoinExchangeService" />
+        <item itemvalue="JUnit.RestServiceTest" />
+        <item itemvalue="JUnit.HistoricalRateCacheServiceTest" />
+        <item itemvalue="JUnit.ExchangeRateServiceTest" />
+        <item itemvalue="JUnit.ExchangeRateUtilTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="6dd4b640-0676-4c28-8723-8042e3eb45f3" name="Default Changelist" comment="" />
+      <created>1615719175973</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1615719175973</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="1137" y="412" width="471" height="273" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes" timestamp="1615900257081">
+      <screen x="0" y="23" width="1792" height="1050" />
+    </state>
+    <state x="1137" y="412" width="471" height="273" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes/0.23.1792.1050@0.23.1792.1050" timestamp="1615900257081" />
+    <state x="679" y="277" key="#xdebugger.evaluate" timestamp="1615978974114">
+      <screen x="0" y="23" width="1792" height="1051" />
+    </state>
+    <state x="679" y="276" key="#xdebugger.evaluate/0.23.1792.1047@0.23.1792.1047" timestamp="1615852768261" />
+    <state x="679" y="277" key="#xdebugger.evaluate/0.23.1792.1050@0.23.1792.1050" timestamp="1615972652872" />
+    <state x="679" y="277" key="#xdebugger.evaluate/0.23.1792.1051@0.23.1792.1051" timestamp="1615978974114" />
+    <state width="592" height="469" key="DebuggerActiveHint" timestamp="1615976527932">
+      <screen x="0" y="23" width="1792" height="1051" />
+    </state>
+    <state width="532" height="466" key="DebuggerActiveHint/0.23.1792.1047@0.23.1792.1047" timestamp="1615852158613" />
+    <state width="592" height="468" key="DebuggerActiveHint/0.23.1792.1050@0.23.1792.1050" timestamp="1615972707413" />
+    <state width="592" height="469" key="DebuggerActiveHint/0.23.1792.1051@0.23.1792.1051" timestamp="1615976527932" />
+    <state width="1750" height="296" key="GridCell.Tab.0.bottom" timestamp="1616096021988">
+      <screen x="0" y="23" width="1792" height="1047" />
+    </state>
+    <state width="1750" height="296" key="GridCell.Tab.0.bottom/0.23.1792.1047@0.23.1792.1047" timestamp="1616096021988" />
+    <state width="1750" height="392" key="GridCell.Tab.0.bottom/0.23.1792.1048@0.23.1792.1048" timestamp="1616091714441" />
+    <state width="1750" height="296" key="GridCell.Tab.0.bottom/0.23.1792.1049@0.23.1792.1049" timestamp="1616090497767" />
+    <state width="1750" height="376" key="GridCell.Tab.0.bottom/0.23.1792.1050@0.23.1792.1050" timestamp="1616070617668" />
+    <state width="1750" height="304" key="GridCell.Tab.0.bottom/0.23.1792.1051@0.23.1792.1051" timestamp="1616019553999" />
+    <state width="1750" height="296" key="GridCell.Tab.0.center" timestamp="1616096021987">
+      <screen x="0" y="23" width="1792" height="1047" />
+    </state>
+    <state width="1750" height="296" key="GridCell.Tab.0.center/0.23.1792.1047@0.23.1792.1047" timestamp="1616096021987" />
+    <state width="1750" height="392" key="GridCell.Tab.0.center/0.23.1792.1048@0.23.1792.1048" timestamp="1616091714440" />
+    <state width="1750" height="296" key="GridCell.Tab.0.center/0.23.1792.1049@0.23.1792.1049" timestamp="1616090497766" />
+    <state width="1750" height="376" key="GridCell.Tab.0.center/0.23.1792.1050@0.23.1792.1050" timestamp="1616070617667" />
+    <state width="1750" height="304" key="GridCell.Tab.0.center/0.23.1792.1051@0.23.1792.1051" timestamp="1616019553998" />
+    <state width="1750" height="296" key="GridCell.Tab.0.left" timestamp="1616096021986">
+      <screen x="0" y="23" width="1792" height="1047" />
+    </state>
+    <state width="1750" height="296" key="GridCell.Tab.0.left/0.23.1792.1047@0.23.1792.1047" timestamp="1616096021986" />
+    <state width="1750" height="392" key="GridCell.Tab.0.left/0.23.1792.1048@0.23.1792.1048" timestamp="1616091714440" />
+    <state width="1750" height="296" key="GridCell.Tab.0.left/0.23.1792.1049@0.23.1792.1049" timestamp="1616090497766" />
+    <state width="1750" height="376" key="GridCell.Tab.0.left/0.23.1792.1050@0.23.1792.1050" timestamp="1616070617666" />
+    <state width="1750" height="304" key="GridCell.Tab.0.left/0.23.1792.1051@0.23.1792.1051" timestamp="1616019553997" />
+    <state width="1750" height="296" key="GridCell.Tab.0.right" timestamp="1616096021988">
+      <screen x="0" y="23" width="1792" height="1047" />
+    </state>
+    <state width="1750" height="296" key="GridCell.Tab.0.right/0.23.1792.1047@0.23.1792.1047" timestamp="1616096021988" />
+    <state width="1750" height="392" key="GridCell.Tab.0.right/0.23.1792.1048@0.23.1792.1048" timestamp="1616091714441" />
+    <state width="1750" height="296" key="GridCell.Tab.0.right/0.23.1792.1049@0.23.1792.1049" timestamp="1616090497767" />
+    <state width="1750" height="376" key="GridCell.Tab.0.right/0.23.1792.1050@0.23.1792.1050" timestamp="1616070617667" />
+    <state width="1750" height="304" key="GridCell.Tab.0.right/0.23.1792.1051@0.23.1792.1051" timestamp="1616019553998" />
+    <state width="1750" height="392" key="GridCell.Tab.1.bottom" timestamp="1616091714444">
+      <screen x="0" y="23" width="1792" height="1048" />
+    </state>
+    <state width="1767" height="353" key="GridCell.Tab.1.bottom/0.23.1792.1047@0.23.1792.1047" timestamp="1615852891831" />
+    <state width="1750" height="392" key="GridCell.Tab.1.bottom/0.23.1792.1048@0.23.1792.1048" timestamp="1616091714444" />
+    <state width="1750" height="384" key="GridCell.Tab.1.bottom/0.23.1792.1049@0.23.1792.1049" timestamp="1615967875833" />
+    <state width="1750" height="391" key="GridCell.Tab.1.bottom/0.23.1792.1050@0.23.1792.1050" timestamp="1615973722980" />
+    <state width="1750" height="458" key="GridCell.Tab.1.bottom/0.23.1792.1051@0.23.1792.1051" timestamp="1616015706830" />
+    <state width="1750" height="392" key="GridCell.Tab.1.center" timestamp="1616091714442">
+      <screen x="0" y="23" width="1792" height="1048" />
+    </state>
+    <state width="1767" height="353" key="GridCell.Tab.1.center/0.23.1792.1047@0.23.1792.1047" timestamp="1615852891830" />
+    <state width="1750" height="392" key="GridCell.Tab.1.center/0.23.1792.1048@0.23.1792.1048" timestamp="1616091714442" />
+    <state width="1750" height="384" key="GridCell.Tab.1.center/0.23.1792.1049@0.23.1792.1049" timestamp="1615967875833" />
+    <state width="1750" height="391" key="GridCell.Tab.1.center/0.23.1792.1050@0.23.1792.1050" timestamp="1615973722979" />
+    <state width="1750" height="458" key="GridCell.Tab.1.center/0.23.1792.1051@0.23.1792.1051" timestamp="1616015706830" />
+    <state width="1750" height="392" key="GridCell.Tab.1.left" timestamp="1616091714442">
+      <screen x="0" y="23" width="1792" height="1048" />
+    </state>
+    <state width="1767" height="353" key="GridCell.Tab.1.left/0.23.1792.1047@0.23.1792.1047" timestamp="1615852891830" />
+    <state width="1750" height="392" key="GridCell.Tab.1.left/0.23.1792.1048@0.23.1792.1048" timestamp="1616091714442" />
+    <state width="1750" height="384" key="GridCell.Tab.1.left/0.23.1792.1049@0.23.1792.1049" timestamp="1615967875833" />
+    <state width="1750" height="391" key="GridCell.Tab.1.left/0.23.1792.1050@0.23.1792.1050" timestamp="1615973722979" />
+    <state width="1750" height="458" key="GridCell.Tab.1.left/0.23.1792.1051@0.23.1792.1051" timestamp="1616015706830" />
+    <state width="1750" height="392" key="GridCell.Tab.1.right" timestamp="1616091714443">
+      <screen x="0" y="23" width="1792" height="1048" />
+    </state>
+    <state width="1767" height="353" key="GridCell.Tab.1.right/0.23.1792.1047@0.23.1792.1047" timestamp="1615852891831" />
+    <state width="1750" height="392" key="GridCell.Tab.1.right/0.23.1792.1048@0.23.1792.1048" timestamp="1616091714443" />
+    <state width="1750" height="384" key="GridCell.Tab.1.right/0.23.1792.1049@0.23.1792.1049" timestamp="1615967875833" />
+    <state width="1750" height="391" key="GridCell.Tab.1.right/0.23.1792.1050@0.23.1792.1050" timestamp="1615973722980" />
+    <state width="1750" height="458" key="GridCell.Tab.1.right/0.23.1792.1051@0.23.1792.1051" timestamp="1616015706830" />
+    <state x="101" y="124" width="1592" height="847" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1616093109484">
+      <screen x="0" y="23" width="1792" height="1047" />
+    </state>
+    <state x="101" y="124" width="1592" height="847" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.23.1792.1047@0.23.1792.1047" timestamp="1616093109484" />
+    <state x="536" y="309" width="869" height="645" key="find.popup" timestamp="1616056258280">
+      <screen x="0" y="23" width="1792" height="1048" />
+    </state>
+    <state x="536" y="309" width="869" height="645" key="find.popup/0.23.1792.1048@0.23.1792.1048" timestamp="1616056258280" />
+    <state x="536" y="310" width="689" height="472" key="find.popup/0.23.1792.1051@0.23.1792.1051" timestamp="1616015699951" />
+    <state x="666" y="250" width="670" height="675" key="run.anything.popup" timestamp="1616077636724">
+      <screen x="0" y="23" width="1792" height="1048" />
+    </state>
+    <state x="666" y="249" width="670" height="676" key="run.anything.popup/0.23.1792.1047@0.23.1792.1047" timestamp="1616022443991" />
+    <state x="666" y="250" width="670" height="675" key="run.anything.popup/0.23.1792.1048@0.23.1792.1048" timestamp="1616077636724" />
+    <state x="666" y="250" width="670" height="676" key="run.anything.popup/0.23.1792.1049@0.23.1792.1049" timestamp="1616075712228" />
+    <state x="666" y="250" width="670" height="677" key="run.anything.popup/0.23.1792.1050@0.23.1792.1050" timestamp="1615997302846" />
+    <state x="666" y="250" width="670" height="678" key="run.anything.popup/0.23.1792.1051@0.23.1792.1051" timestamp="1616018484225" />
+    <state x="664" y="359" width="670" height="677" key="search.everywhere.popup" timestamp="1615972073976">
+      <screen x="0" y="23" width="1792" height="1050" />
+    </state>
+    <state x="664" y="358" width="670" height="675" key="search.everywhere.popup/0.23.1792.1047@0.23.1792.1047" timestamp="1615830051320" />
+    <state x="664" y="359" width="670" height="676" key="search.everywhere.popup/0.23.1792.1049@0.23.1792.1049" timestamp="1615928218249" />
+    <state x="664" y="359" width="670" height="677" key="search.everywhere.popup/0.23.1792.1050@0.23.1792.1050" timestamp="1615972073976" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/assignment/sm/controller/ExchangeRateController.java</url>
+          <line>57</line>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/assignment/sm/exception/ExchangeRateFetchException.java</url>
+          <line>32</line>
+          <option name="timeStamp" value="32" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/test/java/com/assignment/sm/util/ExchangeRateUtilTest.java</url>
+          <line>80</line>
+          <option name="timeStamp" value="41" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/assignment/sm/util/ExchangeRateUtil.java</url>
+          <line>44</line>
+          <option name="timeStamp" value="42" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/assignment/sm/service/ExchangeRateService.java</url>
+          <line>101</line>
+          <option name="timeStamp" value="44" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/assignment/sm/service/ExchangeRateService.java</url>
+          <line>100</line>
+          <option name="timeStamp" value="45" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
