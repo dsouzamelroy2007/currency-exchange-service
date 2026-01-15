@@ -21,7 +21,7 @@ Below is an overview of how the live exchange rate endpoint works:
 • This check and update happens asynchronously, and the updated rate is saved in a simple java object for fast retrieval by the real-time exchange Rate REST endpoint.
 Below logs demonstrate fetching the exchange rate from exchange server every 10 seconds by a scheduled service.
 Example of API response:
-The fromCurrency and toCurrency values are fetched from the application properties file. Hence in future if there is support for more than one currency then instead of the simple java object used to store the Realtime rates we can use a map like data structure or key-value cache like Redis for sufficing the real time exchange rate endpoint
+The fromCurrency and toCurrency values are fetched from the application properties file. Hence in future if there is support for more than one currency then instead of the simple java object used to store the Realtime rates we can use a map like data structure or key-value cache like Redis to suffice the real-time exchange rate endpoint
    
 Below is an overview of how the historical rates endpoint works:
  1. Client sends a get request for historical dates using the service REST endpoint.
