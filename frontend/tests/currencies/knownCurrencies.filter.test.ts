@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { filterCurrencies, type KnownCurrency } from '../../src/currencies/knownCurrencies';
 
 const LIST: KnownCurrency[] = [
-  { code: 'USD', name: 'US Dollar' },
-  { code: 'EUR', name: 'Euro' },
-  { code: 'BTC', name: 'Bitcoin' },
+  { code: 'USD', name: 'US Dollar', symbol: '$' },
+  { code: 'EUR', name: 'Euro', symbol: '€' },
+  { code: 'BTC', name: 'Bitcoin', symbol: '₿' },
 ];
 
 describe('filterCurrencies', () => {

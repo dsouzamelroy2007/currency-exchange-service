@@ -1,16 +1,80 @@
 :root {
   color-scheme: light dark;
   font-family: system-ui, -apple-system, sans-serif;
+
+  --color-bg: #f4f6fb;
+  --color-surface: #ffffff;
+  --color-border: #dbe1ea;
+  --color-text: #1e2433;
+  --color-text-muted: #5b6478;
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #c62828;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-bg: #14161f;
+    --color-surface: #1c1f2b;
+    --color-border: #333850;
+    --color-text: #e7e9f2;
+    --color-text-muted: #a4abc2;
+    --color-primary: #818cf8;
+    --color-primary-hover: #a5b0fb;
+    --color-success: #4ade80;
+    --color-warning: #fbbf24;
+    --color-danger: #f87171;
+  }
 }
 
 body {
   margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .app {
   max-width: 960px;
   margin: 0 auto;
   padding: 1.5rem;
+}
+
+.app h1 {
+  background: linear-gradient(90deg, var(--color-primary), #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+button {
+  font: inherit;
+  color: var(--color-text);
+}
+
+.currency-pair-picker button[type='submit'],
+.date-range-picker button[type='submit'] {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+.currency-pair-picker button[type='submit']:hover,
+.date-range-picker button[type='submit']:hover {
+  background: var(--color-primary-hover);
+}
+
+.currency-pair-picker input,
+.date-range-picker input {
+  border: 1px solid var(--color-border);
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.55rem;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .dashboard-header {
@@ -27,10 +91,10 @@ body {
 }
 .connection-status-connecting,
 .connection-status-reconnecting {
-  color: #b8860b;
+  color: var(--color-warning);
 }
 .connection-status-open {
-  color: #2e7d32;
+  color: var(--color-success);
 }
 
 .currency-pair-picker {
@@ -47,7 +111,7 @@ body {
   gap: 0.25rem;
 }
 .currency-pair-picker-error {
-  color: #c62828;
+  color: var(--color-danger);
   width: 100%;
   margin: 0;
 }
@@ -58,15 +122,16 @@ body {
 .currency-combobox-list {
   position: absolute;
   z-index: 10;
-  background: Canvas;
-  color: CanvasText;
-  border: 1px solid #999;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 0.4rem;
   list-style: none;
   margin: 0.25rem 0 0;
   padding: 0.25rem 0;
   max-height: 12rem;
   overflow-y: auto;
-  min-width: 12rem;
+  min-width: 14rem;
 }
 .currency-combobox-list button {
   display: block;
@@ -78,7 +143,14 @@ body {
   cursor: pointer;
 }
 .currency-combobox-list button:hover {
-  background: rgba(128, 128, 128, 0.2);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+.currency-combobox-symbol {
+  display: inline-block;
+  min-width: 1.6rem;
+  margin-right: 0.35rem;
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 .pair-card-list {
@@ -87,7 +159,9 @@ body {
   gap: 1rem;
 }
 .pair-card {
-  border: 1px solid #999;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--pair-accent, var(--color-primary));
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
 }
@@ -95,25 +169,33 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.4rem;
 }
 .pair-card-header h3 {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.pair-card-symbol {
+  color: var(--pair-accent, var(--color-primary));
 }
 .pair-card-rate {
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0.5rem 0 0.25rem;
+  color: var(--pair-accent, var(--color-text));
 }
 .pair-card-updated,
 .pair-card-loading {
   font-size: 0.8rem;
-  opacity: 0.7;
+  color: var(--color-text-muted);
   margin: 0;
 }
 
 .historical-rate-chart {
   margin-top: 2.5rem;
-  border-top: 1px solid #999;
+  border-top: 1px solid var(--color-border);
   padding-top: 1.5rem;
 }
 .date-range-picker {
@@ -130,5 +212,5 @@ body {
   gap: 0.25rem;
 }
 .historical-rate-chart-error {
-  color: #c62828;
+  color: var(--color-danger);
 }

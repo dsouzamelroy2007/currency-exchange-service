@@ -50,6 +50,7 @@ export function CurrencyCombobox({ label, value, onChange }: CurrencyComboboxPro
                   commit(currency.code);
                 }}
               >
+                <span className="currency-combobox-symbol">{currency.symbol}</span>
                 {currency.code} — {currency.name}
               </button>
             </li>
