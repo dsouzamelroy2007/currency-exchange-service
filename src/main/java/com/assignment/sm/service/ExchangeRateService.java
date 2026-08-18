@@ -1,22 +1,30 @@
 package com.assignment.sm.service;
 
-import com.assignment.sm.domain.Currency;
+import com.assignment.sm.domain.CurrencyPair;
 import com.assignment.sm.domain.HistoricalExchangeRate;
 import com.assignment.sm.exception.ExchangeRateFetchException;
 import com.assignment.sm.model.CurrencyExchangeRate;
 import com.assignment.sm.model.HistoricalRateURLInfo;
-import com.assignment.sm.repository.CurrencyRepository;
 import com.assignment.sm.repository.HistoricalExchangeRateRepository;
 import com.assignment.sm.util.ExchangeRateUtil;
+import com.assignment.sm.websocket.NewRateSubscriptionEvent;
+import com.assignment.sm.websocket.RateSubscriptionRegistry;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -27,27 +35,14 @@ import org.springframework.stereotype.Service;
 @Setter
 public class ExchangeRateService {
 
-
-  @Value("${toCurrency}")
-  private String targetCurrency;
-
-  //@Value("#{'${targetCurrencies}'.split(',')}")
-  //private List<String> targetCurrencies;
-
   @Value("${realTime.exchangeAPI}")
   private String exchangeAPI;
 
   @Value("${historical.exchangeAPI}")
   private String historicalExchangeRateServerBaseURL;
 
-  @Value("${fromCurrency}")
-  private String fromCurrency;
-
   @Autowired
   RestService restService;
-
-  @Autowired
-  CurrencyRepository currencyRepository;
 
   @Autowired
   HistoricalExchangeRateRepository historicalExchangeRateRepository;
@@ -55,62 +50,99 @@ public class ExchangeRateService {
   @Autowired
   HistoricalRateCacheService historicalRateCacheService;
 
-  private CurrencyExchangeRate currencyExchangeRate;
+  @Autowired
+  CurrencyPairService currencyPairService;
 
-  public CurrencyExchangeRate getCurrencyExchangeRate(){
-    if(currencyExchangeRate != null){
-      return currencyExchangeRate;
-    }else{
-      return new CurrencyExchangeRate(targetCurrency);
-    }
+  @Autowired
+  RateSubscriptionRegistry rateSubscriptionRegistry;
+
+  @Autowired
+  SimpMessagingTemplate messagingTemplate;
+
+  @Autowired
+  CacheManager cacheManager;
+
+  @Cacheable(value = "liveRates", key = "#from + '_' + #to")
+  public CurrencyExchangeRate getLiveRate(String from, String to){
+    currencyPairService.findOrCreatePair(from, to);
+    Map<String, Object> exchangeRates = restService.get(ExchangeRateUtil.getURLStringToFetchRealTimeExchangeRate(exchangeAPI, from, List.of(to)), Map.class);
+    return ExchangeRateUtil.getCurrencyExchangeRate(from, to, exchangeRates, new CurrencyExchangeRate());
   }
 
-  public List<CurrencyExchangeRate> getHistoricalExchangeRates(String targetCurrency, LocalDate startDate, LocalDate endDate){
+  public List<CurrencyExchangeRate> getHistoricalExchangeRates(String from, String to, LocalDate startDate, LocalDate endDate){
+    CurrencyPair currencyPair = currencyPairService.findOrCreatePair(from, to);
     try{
-      Currency currency = currencyRepository.findByAbbreviation(targetCurrency);
-      List<HistoricalExchangeRate> historicalExchangeRates = historicalExchangeRateRepository.findByCurrencyAndDateBetweenOrderByDateAsc(currency, startDate, endDate);
+      List<HistoricalExchangeRate> historicalExchangeRates = historicalExchangeRateRepository.findByCurrencyPairAndDateBetweenOrderByDateAsc(currencyPair, startDate, endDate);
       int numberOfMissingDatesFromLocalStorage = ExchangeRateUtil.findMissingDays(historicalExchangeRates.size(), startDate, endDate);
       if(numberOfMissingDatesFromLocalStorage == 0){
-        return ExchangeRateUtil.getHistoricalExchangeRatesToCurrencyExchangeRateDTO(startDate, targetCurrency, historicalExchangeRates, null);
+        return ExchangeRateUtil.getHistoricalExchangeRatesToCurrencyExchangeRateDTO(startDate, currencyPair, historicalExchangeRates, null);
       }
       log.info("Data not availabe in local storage for all the historical dates");
-      return getHistoricalRatesFromServer(currency, historicalExchangeRates, startDate, endDate);
+      return getHistoricalRatesFromServer(currencyPair, historicalExchangeRates, startDate, endDate);
     }catch (Exception e){
       log.error("Error while fetching historical exchange rates from startDate : {} to endDate : {}", startDate, endDate,e);
-      throw new ExchangeRateFetchException(HttpStatus.INTERNAL_SERVER_ERROR, e.getCause());
+      throw new ExchangeRateFetchException(HttpStatus.INTERNAL_SERVER_ERROR, e);
     }
   }
 
-  public  List<CurrencyExchangeRate> getHistoricalRatesFromServer(Currency currency, List<HistoricalExchangeRate> localHistoricalExchangeRates, LocalDate startDate, LocalDate endDate){
+  public List<CurrencyExchangeRate> getHistoricalRatesFromServer(CurrencyPair currencyPair, List<HistoricalExchangeRate> localHistoricalExchangeRates, LocalDate startDate, LocalDate endDate){
     HistoricalRateURLInfo URLInfo = ExchangeRateUtil.getInfoOnHistoricalRatesToBeFetched(localHistoricalExchangeRates, startDate, endDate);
+    String fromCurrency = currencyPair.getFromCurrency().getAbbreviation();
+    String toCurrency = currencyPair.getToCurrency().getAbbreviation();
     String historicalExchangeServerAPIURL;
     List<Map<String, Object>> bitcoinHistoricalExhangeRates = new ArrayList<>();
     if(URLInfo.getLowerLimitTimeStamp() != null && URLInfo.getUpperLimitTimeStamp() != null){
-      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, targetCurrency, URLInfo.getLowerLimit(), URLInfo.getLowerLimitTimeStamp());
+      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getLowerLimit(), URLInfo.getLowerLimitTimeStamp());
       bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
-      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, targetCurrency, URLInfo.getUpperLimit(), URLInfo.getUpperLimitTimeStamp());
+      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getUpperLimit(), URLInfo.getUpperLimitTimeStamp());
       bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
     }else if(URLInfo.getLowerLimitTimeStamp() != null){
-      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, targetCurrency, URLInfo.getLowerLimit() , URLInfo.getLowerLimitTimeStamp());
+      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getLowerLimit() , URLInfo.getLowerLimitTimeStamp());
       bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
     }else{
-      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, targetCurrency, URLInfo.getUpperLimit() , URLInfo.getUpperLimitTimeStamp());
+      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getUpperLimit() , URLInfo.getUpperLimitTimeStamp());
       bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
     }
 
-    historicalRateCacheService.saveMissingHistoricalExchangeRates(startDate, localHistoricalExchangeRates, currency, bitcoinHistoricalExhangeRates);
-    return ExchangeRateUtil.getHistoricalExchangeRatesToCurrencyExchangeRateDTO(startDate, currency.getAbbreviation(), localHistoricalExchangeRates, bitcoinHistoricalExhangeRates);
+    historicalRateCacheService.saveMissingHistoricalExchangeRates(startDate, localHistoricalExchangeRates, currencyPair, bitcoinHistoricalExhangeRates);
+    return ExchangeRateUtil.getHistoricalExchangeRatesToCurrencyExchangeRateDTO(startDate, currencyPair, localHistoricalExchangeRates, bitcoinHistoricalExhangeRates);
   }
 
   @Scheduled(fixedRateString = "${exchangeRate.check.periodInMilliseconds}")
-  public void fetchBitCoinExchangeRate(){
+  public void refreshSubscribedLiveRates(){
+    Set<String> activePairs = rateSubscriptionRegistry.getActivePairs();
+    if(activePairs.isEmpty()){
+      return;
+    }
+    Map<String, List<String>> toCurrenciesByFrom = activePairs.stream()
+        .map(pairKey -> pairKey.split("_", 2))
+        .collect(Collectors.groupingBy(parts -> parts[0], Collectors.mapping(parts -> parts[1], Collectors.toList())));
+
+    toCurrenciesByFrom.forEach(this::refreshAndPushRatesForBase);
+  }
+
+  @EventListener
+  @Async("threadPoolTaskExecutor")
+  public void onNewRateSubscription(NewRateSubscriptionEvent event){
+    refreshAndPushRatesForBase(event.getFromCurrency(), List.of(event.getToCurrency()));
+  }
+
+  private void refreshAndPushRatesForBase(String from, List<String> toCurrencies){
     try{
-      Map<String, Object> bitcoinExhangeRates = restService.get(this.exchangeAPI, Map.class);
-      CurrencyExchangeRate currencyExchangeRate = ExchangeRateUtil.getCurrencyExchangeRate(this.targetCurrency, bitcoinExhangeRates, this.getCurrencyExchangeRate());
-      this.currencyExchangeRate = currencyExchangeRate;
+      Map<String, Object> exchangeRates = restService.get(ExchangeRateUtil.getURLStringToFetchRealTimeExchangeRate(exchangeAPI, from, toCurrencies), Map.class);
+      toCurrencies.forEach(to -> publishLiveRate(from, to, exchangeRates));
     }catch (Exception e){
-      log.error("Error while fetching realTime exchange rate",e);
-      throw new ExchangeRateFetchException(HttpStatus.INTERNAL_SERVER_ERROR, e.getCause());
+      log.error("Error while refreshing subscribed live rates for base currency {}", from, e);
+    }
+  }
+
+  private void publishLiveRate(String from, String to, Map<String, Object> exchangeRates){
+    try{
+      CurrencyExchangeRate rate = ExchangeRateUtil.getCurrencyExchangeRate(from, to, exchangeRates, new CurrencyExchangeRate());
+      cacheManager.getCache("liveRates").put(RateSubscriptionRegistry.pairKey(from, to), rate);
+      messagingTemplate.convertAndSend("/topic/rates/" + from + "/" + to, rate);
+    }catch (Exception e){
+      log.error("Error while publishing live rate for {} -> {}", from, to, e);
     }
   }
 

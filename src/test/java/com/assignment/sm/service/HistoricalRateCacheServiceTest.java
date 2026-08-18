@@ -1,13 +1,13 @@
 package com.assignment.sm.service;
 
-import static com.assignment.sm.util.MockDataCreator.getCurrencyObjectForTest;
+import static com.assignment.sm.util.MockDataCreator.getCurrencyPairForTest;
 import static com.assignment.sm.util.MockDataCreator.getData;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.assignment.sm.domain.Currency;
+import com.assignment.sm.domain.CurrencyPair;
 import com.assignment.sm.exception.ExchangeRateSaveException;
 import com.assignment.sm.repository.HistoricalExchangeRateRepository;
 import java.sql.SQLException;
@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -35,13 +34,13 @@ public class HistoricalRateCacheServiceTest {
   @Mock
   HistoricalExchangeRateRepository historicalExchangeRateRepository;
 
-  private Currency currency;
+  private CurrencyPair currencyPair;
   private LocalDate startDate;
   private List<Map<String, Object>> historicalExchangeRates;
 
   @BeforeEach
   public void populateTestData(){
-     currency = getCurrencyObjectForTest();
+     currencyPair = getCurrencyPairForTest();
      startDate = LocalDate.of(2021, 3, 10);
 
      historicalExchangeRates = List.of((Map<String, Object>) getData("historicalExchangeData.json", Map.class));
@@ -57,7 +56,7 @@ public class HistoricalRateCacheServiceTest {
         .thenThrow(new DataIntegrityViolationException("DataIntegrity Error", cve));
 
     Assertions.assertThrows(ExchangeRateSaveException.class, () -> {
-      historicalRateCacheService.saveMissingHistoricalExchangeRates(startDate, new ArrayList<>(), currency, historicalExchangeRates);
+      historicalRateCacheService.saveMissingHistoricalExchangeRates(startDate, new ArrayList<>(), currencyPair, historicalExchangeRates);
     });
   }
 
@@ -67,7 +66,7 @@ public class HistoricalRateCacheServiceTest {
     when(historicalExchangeRateRepository.saveAll(any(List.class)))
         .thenReturn(new ArrayList<>());
 
-    historicalRateCacheService.saveMissingHistoricalExchangeRates(startDate, new ArrayList<>(), currency, historicalExchangeRates);
+    historicalRateCacheService.saveMissingHistoricalExchangeRates(startDate, new ArrayList<>(), currencyPair, historicalExchangeRates);
     verify(historicalExchangeRateRepository, times(1)).saveAll(any(List.class));
 
   }

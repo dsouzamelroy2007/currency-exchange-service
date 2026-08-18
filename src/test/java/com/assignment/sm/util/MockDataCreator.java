@@ -1,6 +1,7 @@
 package com.assignment.sm.util;
 
 import com.assignment.sm.domain.Currency;
+import com.assignment.sm.domain.CurrencyPair;
 import com.assignment.sm.domain.HistoricalExchangeRate;
 import com.assignment.sm.model.CurrencyExchangeRate;
 import com.assignment.sm.model.ExchangeRateResponse;
@@ -17,35 +18,44 @@ import org.springframework.core.io.Resource;
 public class MockDataCreator {
 
     private static LocalDate startDate = LocalDate.of(2021, 3, 10);
+
+    public static Currency getFromCurrencyObjectForTest(){
+        return new Currency("Bitcoin", "BTC");
+    }
+
     public static Currency getCurrencyObjectForTest(){
         return new Currency("United States Dollar", "USD");
     }
 
+    public static CurrencyPair getCurrencyPairForTest(){
+        return new CurrencyPair(getFromCurrencyObjectForTest(), getCurrencyObjectForTest());
+    }
+
     public static List<HistoricalExchangeRate> historicalExchangeRatesForTest(){
-        Currency currency = getCurrencyObjectForTest();
+        CurrencyPair currencyPair = getCurrencyPairForTest();
         return List.of(
-            new HistoricalExchangeRate(1L , 56988.45, LocalDate.of(2021, 3, 10), LocalDateTime.now(), currency ),
-            new HistoricalExchangeRate(2L , 56868.45, LocalDate.of(2021, 3, 11), LocalDateTime.now(), currency ),
-            new HistoricalExchangeRate(3L , 56788.45, LocalDate.of(2021, 3, 12), LocalDateTime.now(), currency )
+            new HistoricalExchangeRate(1L , 56988.45, LocalDate.of(2021, 3, 10), LocalDateTime.now(), currencyPair ),
+            new HistoricalExchangeRate(2L , 56868.45, LocalDate.of(2021, 3, 11), LocalDateTime.now(), currencyPair ),
+            new HistoricalExchangeRate(3L , 56788.45, LocalDate.of(2021, 3, 12), LocalDateTime.now(), currencyPair )
         );
     }
 
     public static CurrencyExchangeRate currencyExchangeLiveRate(){
-        return new CurrencyExchangeRate("USD", 56648.74, LocalDate.now());
+        return new CurrencyExchangeRate("BTC", "USD", 56648.74, LocalDate.now());
     }
 
     public static ExchangeRateResponse getResponseForLiveRate(){
-        return new ExchangeRateResponse("BTC", List.of(currencyExchangeLiveRate()));
+        return new ExchangeRateResponse(List.of(currencyExchangeLiveRate()));
     }
 
-    public static List<CurrencyExchangeRate> currencyExchangeHistoricalRates(Currency currency){
-        return ExchangeRateUtil.getHistoricalExchangeRatesToCurrencyExchangeRateDTO(startDate, currency.getAbbreviation(), historicalExchangeRatesForTest(), null);
+    public static List<CurrencyExchangeRate> currencyExchangeHistoricalRates(CurrencyPair currencyPair){
+        return ExchangeRateUtil.getHistoricalExchangeRatesToCurrencyExchangeRateDTO(startDate, currencyPair, historicalExchangeRatesForTest(), null);
     }
 
     public static ExchangeRateResponse getResponseForHistoricalRates(){
-        Currency currency = getCurrencyObjectForTest();
-        List<CurrencyExchangeRate> exchangeRates = currencyExchangeHistoricalRates(currency);
-        return new ExchangeRateResponse("BTC", exchangeRates);
+        CurrencyPair currencyPair = getCurrencyPairForTest();
+        List<CurrencyExchangeRate> exchangeRates = currencyExchangeHistoricalRates(currencyPair);
+        return new ExchangeRateResponse(exchangeRates);
     }
 
     public static <T, E> T getData(String filename, Class<T> dataClass) {
@@ -76,5 +86,4 @@ public class MockDataCreator {
         return t;
     }
 }
-
 

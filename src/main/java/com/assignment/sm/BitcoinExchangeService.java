@@ -1,6 +1,7 @@
 package com.assignment.sm;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.TimeZone;
 import javax.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;
@@ -72,7 +73,8 @@ public class BitcoinExchangeService {
                    "1.0","wwww.xyz.com",
                             new Contact("dev_team","","tech-support@.com"),
                     null,
-                  null);
+                  null,
+                  Collections.emptyList());
   }
 
 }
