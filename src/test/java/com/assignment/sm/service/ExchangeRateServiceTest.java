@@ -49,6 +49,9 @@ public class ExchangeRateServiceTest {
   RestService restService;
 
   @Mock
+  ExchangeRateApiProviderService exchangeRateApiProviderService;
+
+  @Mock
   HistoricalExchangeRateRepository historicalExchangeRateRepository;
 
   @Mock
@@ -81,6 +84,11 @@ public class ExchangeRateServiceTest {
     exchangeRateService.setExchangeAPI(exchangeAPI);
     exchangeRateService.setHistoricalExchangeRateServerBaseURL(historicalExchangeRateServerBaseURL);
     lenient().when(cacheManager.getCache("liveRates")).thenReturn(liveRatesCache);
+    // Free provider has no data by default (as it would for a crypto base like BTC), so
+    // fetchExchangeRates falls back to the mocked restService/exchangeAPI, matching the
+    // pre-existing test expectations below.
+    lenient().when(exchangeRateApiProviderService.getRatesForBase(anyString())).thenReturn(null);
+    lenient().when(currencyPairService.findOrCreatePair("BTC", "USD")).thenReturn(currencyPair);
   }
 
   @Test

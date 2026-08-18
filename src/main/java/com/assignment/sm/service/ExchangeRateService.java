@@ -3,6 +3,7 @@ package com.assignment.sm.service;
 import com.assignment.sm.domain.CurrencyPair;
 import com.assignment.sm.domain.HistoricalExchangeRate;
 import com.assignment.sm.exception.ExchangeRateFetchException;
+import com.assignment.sm.exception.HistoricalRateUnavailableException;
 import com.assignment.sm.model.CurrencyExchangeRate;
 import com.assignment.sm.model.HistoricalRateURLInfo;
 import com.assignment.sm.repository.HistoricalExchangeRateRepository;
@@ -90,6 +91,8 @@ public class ExchangeRateService {
       }
       log.info("Data not availabe in local storage for all the historical dates");
       return getHistoricalRatesFromServer(currencyPair, historicalExchangeRates, startDate, endDate);
+    }catch (HistoricalRateUnavailableException e){
+      throw e;
     }catch (Exception e){
       log.error("Error while fetching historical exchange rates from startDate : {} to endDate : {}", startDate, endDate,e);
       throw new ExchangeRateFetchException(HttpStatus.INTERNAL_SERVER_ERROR, e);
@@ -102,17 +105,28 @@ public class ExchangeRateService {
     String toCurrency = currencyPair.getToCurrency().getAbbreviation();
     String historicalExchangeServerAPIURL;
     List<Map<String, Object>> bitcoinHistoricalExhangeRates = new ArrayList<>();
-    if(URLInfo.getLowerLimitTimeStamp() != null && URLInfo.getUpperLimitTimeStamp() != null){
-      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getLowerLimit(), URLInfo.getLowerLimitTimeStamp());
-      bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
-      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getUpperLimit(), URLInfo.getUpperLimitTimeStamp());
-      bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
-    }else if(URLInfo.getLowerLimitTimeStamp() != null){
-      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getLowerLimit() , URLInfo.getLowerLimitTimeStamp());
-      bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
-    }else{
-      historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getUpperLimit() , URLInfo.getUpperLimitTimeStamp());
-      bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
+    try{
+      if(URLInfo.getLowerLimitTimeStamp() != null && URLInfo.getUpperLimitTimeStamp() != null){
+        historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getLowerLimit(), URLInfo.getLowerLimitTimeStamp());
+        bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
+        historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getUpperLimit(), URLInfo.getUpperLimitTimeStamp());
+        bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
+      }else if(URLInfo.getLowerLimitTimeStamp() != null){
+        historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getLowerLimit() , URLInfo.getLowerLimitTimeStamp());
+        bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
+      }else{
+        historicalExchangeServerAPIURL = ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates(historicalExchangeRateServerBaseURL, fromCurrency, toCurrency, URLInfo.getUpperLimit() , URLInfo.getUpperLimitTimeStamp());
+        bitcoinHistoricalExhangeRates.add(restService.get(historicalExchangeServerAPIURL, Map.class));
+      }
+    }catch (ExchangeRateFetchException e){
+      int availableDays = localHistoricalExchangeRates.size();
+      log.warn("External historical rate provider unavailable for {}/{} between {} and {}; {} of the requested days were already tracked locally",
+          fromCurrency, toCurrency, startDate, endDate, availableDays, e);
+      throw new HistoricalRateUnavailableException(HttpStatus.NOT_FOUND, String.format(
+          "No historical rate data available for %s/%s for the full range %s to %s (only %d day(s) previously tracked locally). "
+              + "This pair hasn't been searched historically before, and the external historical rate provider isn't reachable to backfill the rest. "
+              + "Rates for %s/%s are recorded automatically going forward once the pair is tracked live.",
+          fromCurrency, toCurrency, startDate, endDate, availableDays, fromCurrency, toCurrency));
     }
 
     historicalRateCacheService.saveMissingHistoricalExchangeRates(startDate, localHistoricalExchangeRates, currencyPair, bitcoinHistoricalExhangeRates);
@@ -152,6 +166,8 @@ public class ExchangeRateService {
       CurrencyExchangeRate rate = ExchangeRateUtil.getCurrencyExchangeRate(from, to, exchangeRates, new CurrencyExchangeRate());
       cacheManager.getCache("liveRates").put(RateSubscriptionRegistry.pairKey(from, to), rate);
       messagingTemplate.convertAndSend("/topic/rates/" + from + "/" + to, rate);
+      CurrencyPair currencyPair = currencyPairService.findOrCreatePair(from, to);
+      historicalRateCacheService.recordTodaysRateIfMissing(currencyPair, rate);
     }catch (Exception e){
       log.error("Error while publishing live rate for {} -> {}", from, to, e);
     }

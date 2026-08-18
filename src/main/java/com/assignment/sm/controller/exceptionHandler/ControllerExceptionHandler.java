@@ -4,6 +4,7 @@ import com.assignment.sm.exception.CurrencyNotFoundException;
 import com.assignment.sm.exception.ExchangeRateFetchException;
 import com.assignment.sm.exception.ExchangeRateParseException;
 import com.assignment.sm.exception.ExchangeRateSaveException;
+import com.assignment.sm.exception.HistoricalRateUnavailableException;
 import com.assignment.sm.exception.InvalidInputException;
 import com.assignment.sm.model.ErrorDetails;
 import java.time.LocalDateTime;
@@ -48,6 +49,16 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(CurrencyNotFoundException.class)
   public ResponseEntity processNotFoundException(CurrencyNotFoundException e, WebRequest request){
+    ErrorDetails errorDetails = ErrorDetails.builder()
+                                              .localDateTime(LocalDateTime.now())
+                                              .message(e.getLocalizedMessage())
+                                              .details(request.getDescription(false))
+                                              .build();
+    return new ResponseEntity(errorDetails,e. getHttpStatus());
+  }
+
+  @ExceptionHandler(HistoricalRateUnavailableException.class)
+  public ResponseEntity processHistoricalRateUnavailableException(HistoricalRateUnavailableException e, WebRequest request){
     ErrorDetails errorDetails = ErrorDetails.builder()
                                               .localDateTime(LocalDateTime.now())
                                               .message(e.getLocalizedMessage())

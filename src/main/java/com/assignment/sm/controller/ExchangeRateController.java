@@ -3,6 +3,7 @@ package com.assignment.sm.controller;
 import com.assignment.sm.exception.CurrencyNotFoundException;
 import com.assignment.sm.exception.ExchangeRateFetchException;
 import com.assignment.sm.exception.ExchangeRateSaveException;
+import com.assignment.sm.exception.HistoricalRateUnavailableException;
 import com.assignment.sm.exception.InvalidInputException;
 import com.assignment.sm.model.CurrencyExchangeRate;
 import com.assignment.sm.model.ExchangeRateResponse;
@@ -73,7 +74,7 @@ public class ExchangeRateController {
                                          @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "120000")
                                        },
                   ignoreExceptions = {InvalidInputException.class, CurrencyNotFoundException.class, ExchangeRateSaveException.class,
-                                      ExchangeRateSaveException.class, ExchangeRateFetchException.class}
+                                      ExchangeRateSaveException.class, ExchangeRateFetchException.class, HistoricalRateUnavailableException.class}
                   )
   public ResponseEntity getHistoricalExchangeRate(
                                           @RequestParam(required = true) String from,

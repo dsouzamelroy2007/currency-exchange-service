@@ -109,4 +109,34 @@ mvn spring-boot:run
   on the `@Cacheable`), so a transient outage doesn't lock out the fallback path for a full day.
   This is a second Caffeine cache alongside the existing `liveRates` one (`CacheConfig` now
   registers both via `registerCustomCache`, each with its own TTL from `application.properties`).
+- **Historical rates: no free provider offers real historical FX data, so we build our own going
+  forward instead.** exchangerate-api.com's free tier is latest-rates-only; historical data on
+  either provider needs a paid plan. Since `publishLiveRate` already fires whenever a pair gets a
+  live push (the WS-subscribed scheduled poll, or the immediate push on first subscribe),
+  `HistoricalRateCacheService.recordTodaysRateIfMissing` now writes one `HistoricalExchangeRate`
+  row per pair per day from that same path (guarded by `existsByCurrencyPairAndDate` so the ~10s
+  poll doesn't hammer the DB, and a caught `DataIntegrityViolationException` for the race where two
+  pushes land concurrently). This means any pair tracked live starts accumulating real historical
+  data from that point forward — there's nothing for dates before a pair was first tracked, and
+  that's inherent to not having a real historical data source, not a bug.
+- **Historical rate failures: a dedicated `HistoricalRateUnavailableException` (404) instead of the
+  raw upstream exception.** When requested dates aren't in the DB and the external
+  `historical.exchangeAPI` (CryptoCompare) call fails, `getHistoricalRatesFromServer` now catches
+  that specific `ExchangeRateFetchException` (not a bare `Exception`, so unrelated bugs aren't
+  masked as "no data") and raises `HistoricalRateUnavailableException` with a message naming the
+  pair, the requested range, how many days were already tracked locally, and that rates accumulate
+  automatically once a pair is tracked live. It's added to the Hystrix `ignoreExceptions` list on
+  `/historicalRate` (alongside the other domain exceptions) so it reaches the client as itself
+  instead of being replaced by the generic Hystrix-timeout fallback text.
+- **Fixed a latent Hibernate/H2 date read bug, surfaced by the above.** `HistoricalExchangeRate.date`
+  columns were reading back one day off from what was actually stored (confirmed by querying the H2
+  file directly) whenever the JVM's default timezone wasn't UTC at the moment the DB
+  connection pool was created. The app already called `TimeZone.setDefault(UTC)`, but from an
+  `@PostConstruct` method — which runs *after* Spring creates the DataSource/connection pool, so
+  those connections (and H2's JDBC driver, whose date conversions fall back to
+  `Calendar.getInstance()`/`TimeZone.getDefault()`) were already pinned to the original zone by the
+  time the override ran. Moved the call to the first line of `main()`, before
+  `SpringApplication.run(...)`, so every bean is created under a consistently-UTC default zone.
+  This was never exercised before today since no historical write+read had ever succeeded in this
+  environment (CryptoCompare always 401'd); it's not new, just newly visible.
  

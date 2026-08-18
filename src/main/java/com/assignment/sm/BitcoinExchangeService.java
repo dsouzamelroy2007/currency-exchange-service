@@ -3,7 +3,6 @@ package com.assignment.sm;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.TimeZone;
-import javax.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -28,13 +27,13 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 public class BitcoinExchangeService {
 
   public static void main(String[] args) {
-    SpringApplication.run(BitcoinExchangeService.class, args);
-  }
-
-  @PostConstruct
-  public void init(){
-    // Setting Spring Boot SetTimeZone
+    // Must happen before the Spring context starts: the DataSource/connection pool (and H2's
+    // JDBC driver, whose Date conversions fall back to Calendar.getInstance()) get created
+    // during context startup, so setting this in @PostConstruct was too late and left DB
+    // connections pinned to the JVM's original default zone, causing DATE columns to read back
+    // shifted by a day around DST boundaries.
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    SpringApplication.run(BitcoinExchangeService.class, args);
   }
 
   @Bean

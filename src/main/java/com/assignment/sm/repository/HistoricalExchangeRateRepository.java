@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface HistoricalExchangeRateRepository extends JpaRepository<HistoricalExchangeRate, Long> {
 
   List<HistoricalExchangeRate> findByCurrencyPairAndDateBetweenOrderByDateAsc(CurrencyPair currencyPair, LocalDate startDate, LocalDate endDate);
+
+  boolean existsByCurrencyPairAndDate(CurrencyPair currencyPair, LocalDate date);
 }
