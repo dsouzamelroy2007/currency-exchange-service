@@ -7,14 +7,16 @@ import static com.assignment.sm.util.ExchangeRateUtil.getHistoricalExchangeRates
 import static com.assignment.sm.util.ExchangeRateUtil.getHistoricalExchangeRatesToCurrencyExchangeRateDTO;
 import static com.assignment.sm.util.ExchangeRateUtil.getInfoOnHistoricalRatesToBeFetched;
 import static com.assignment.sm.util.ExchangeRateUtil.getURLStringToFetchHistoricalExchangeRates;
+import static com.assignment.sm.util.ExchangeRateUtil.getURLStringToFetchRealTimeExchangeRate;
 import static com.assignment.sm.util.MockDataCreator.currencyExchangeLiveRate;
-import static com.assignment.sm.util.MockDataCreator.getCurrencyObjectForTest;
+import static com.assignment.sm.util.MockDataCreator.getCurrencyPairForTest;
 import static com.assignment.sm.util.MockDataCreator.getData;
 import static com.assignment.sm.util.MockDataCreator.historicalExchangeRatesForTest;
 
-import com.assignment.sm.domain.Currency;
+import com.assignment.sm.domain.CurrencyPair;
 import com.assignment.sm.domain.HistoricalExchangeRate;
 import com.assignment.sm.exception.CurrencyNotFoundException;
+import com.assignment.sm.exception.ExchangeRateParseException;
 import com.assignment.sm.model.CurrencyExchangeRate;
 import com.assignment.sm.model.HistoricalRateURLInfo;
 import java.time.LocalDate;
@@ -42,14 +44,16 @@ public class ExchangeRateUtilTest {
   public void testGetCurrencyExchangeRateFailure(){
     currencyExchangeRate.setExchangeRate(56648.74);
     Assertions.assertThrows(CurrencyNotFoundException.class, () -> {
-      getCurrencyExchangeRate("USD$", bitcoinRealTimeExchangeRates, new CurrencyExchangeRate());
+      getCurrencyExchangeRate("BTC", "USD$", bitcoinRealTimeExchangeRates, new CurrencyExchangeRate());
     });
   }
 
   @Test
   public void testGetCurrencyExchangeRateSuccess(){
-    CurrencyExchangeRate actualResult = getCurrencyExchangeRate("USD", bitcoinRealTimeExchangeRates, new CurrencyExchangeRate());
+    CurrencyExchangeRate actualResult = getCurrencyExchangeRate("BTC", "USD", bitcoinRealTimeExchangeRates, new CurrencyExchangeRate());
     Assertions.assertEquals(currencyExchangeRate.getExchangeRate(), actualResult.getExchangeRate());
+    Assertions.assertEquals("BTC", actualResult.getFromCurrency());
+    Assertions.assertEquals("USD", actualResult.getToCurrency());
   }
 
 
@@ -113,40 +117,56 @@ public class ExchangeRateUtilTest {
   }
 
   @Test
+  public void testURLStringToFetchRealTimeExchangeRateSuccess(){
+    String baseURl = "http://xyz.com/liveRates";
+    String actualResult = getURLStringToFetchRealTimeExchangeRate(baseURl, "BTC", List.of("USD"));
+    Assertions.assertEquals("http://xyz.com/liveRates?fsym=BTC&tsyms=USD", actualResult);
+  }
+
+  @Test
+  public void testURLStringToFetchRealTimeExchangeRateMultipleTargetsSuccess(){
+    String baseURl = "http://xyz.com/liveRates";
+    String actualResult = getURLStringToFetchRealTimeExchangeRate(baseURl, "BTC", List.of("USD", "EUR"));
+    Assertions.assertEquals("http://xyz.com/liveRates?fsym=BTC&tsyms=USD,EUR", actualResult);
+  }
+
+  @Test
   public void testGetHistoricalExchangeRatesToBeSavedFailure(){
-    Currency currency = getCurrencyObjectForTest();
+    CurrencyPair currencyPair = getCurrencyPairForTest();
     LocalDate startDate = LocalDate.of(2021, 3, 10);
 
     List<Map<String, Object>> historicalExchangeRates = List.of((Map<String, Object>) getData("historicalExchangeBadData.json", Map.class));
-    Assertions.assertThrows(NullPointerException.class, () -> {
-      getHistoricalExchangeRatesToBeSaved(startDate, new ArrayList<>(), currency, historicalExchangeRates);
+    Assertions.assertThrows(ExchangeRateParseException.class, () -> {
+      getHistoricalExchangeRatesToBeSaved(startDate, new ArrayList<>(), currencyPair, historicalExchangeRates);
     });
   }
 
   @Test
   public void testGetHistoricalExchangeRatesToBeSavedSuccess(){
-    Currency currency = getCurrencyObjectForTest();
+    CurrencyPair currencyPair = getCurrencyPairForTest();
     LocalDate startDate = LocalDate.of(2021, 3, 10);
 
     Map<String, Object> historicalExchangeRates = (Map<String, Object>) getData("historicalExchangeData.json", Map.class);
-    List<HistoricalExchangeRate> actualHistoricalExchangeRates = getHistoricalExchangeRatesToBeSaved(startDate, new ArrayList<>(), currency, List.of(historicalExchangeRates));
+    List<HistoricalExchangeRate> actualHistoricalExchangeRates = getHistoricalExchangeRatesToBeSaved(startDate, new ArrayList<>(), currencyPair, List.of(historicalExchangeRates));
     Assertions.assertEquals(4, actualHistoricalExchangeRates.size());
   }
 
   @Test
   public void testGetHistoricalExchangeRatesToCurrencyExchangeRateDTOFailure(){
     LocalDate startDate = LocalDate.of(2021, 3, 10);
+    CurrencyPair currencyPair = getCurrencyPairForTest();
     List<Map<String, Object>> bitcoinHistoricalExchangeRates = List.of((Map<String, Object>) getData("historicalExchangeBadData.json", Map.class));
-    Assertions.assertThrows(NullPointerException.class, () -> {
-      getHistoricalExchangeRatesToCurrencyExchangeRateDTO(startDate,"USD", historicalExchangeRates, bitcoinHistoricalExchangeRates);
+    Assertions.assertThrows(ExchangeRateParseException.class, () -> {
+      getHistoricalExchangeRatesToCurrencyExchangeRateDTO(startDate, currencyPair, historicalExchangeRates, bitcoinHistoricalExchangeRates);
     });
   }
 
   @Test
   public void testGetHistoricalExchangeRatesToCurrencyExchangeRateDTOSuccess(){
     LocalDate startDate = LocalDate.of(2021, 3, 10);
+    CurrencyPair currencyPair = getCurrencyPairForTest();
     List<Map<String, Object>> bitcoinHistoricalExchangeRates = List.of((Map<String, Object>) getData("historicalExchangeData.json", Map.class));
-    List<CurrencyExchangeRate> actualHistoricalExchangeRates = getHistoricalExchangeRatesToCurrencyExchangeRateDTO(startDate,"USD", historicalExchangeRates, bitcoinHistoricalExchangeRates);
+    List<CurrencyExchangeRate> actualHistoricalExchangeRates = getHistoricalExchangeRatesToCurrencyExchangeRateDTO(startDate, currencyPair, historicalExchangeRates, bitcoinHistoricalExchangeRates);
     Assertions.assertEquals(4, actualHistoricalExchangeRates.size());
   }
 }

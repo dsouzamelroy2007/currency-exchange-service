@@ -38,7 +38,7 @@ public class RestService {
             }
         } catch (Exception e) {
             log.error("Exception while fetching exchange rates ", e);
-            throw new ExchangeRateFetchException(HttpStatus.INTERNAL_SERVER_ERROR, e.getCause());
+            throw new ExchangeRateFetchException(HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }
 

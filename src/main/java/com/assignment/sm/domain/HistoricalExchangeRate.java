@@ -12,6 +12,7 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -24,7 +25,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(indexes = @Index(columnList = "date", name = "exchange_rate_history_date"))
+@Table(indexes = @Index(columnList = "date", name = "exchange_rate_history_date"),
+    uniqueConstraints = @UniqueConstraint(columnNames = {"currency_pair_id", "date"}))
 public class HistoricalExchangeRate {
 
   @Id
@@ -41,8 +43,8 @@ public class HistoricalExchangeRate {
   private LocalDateTime updatedTime;
 
   @ManyToOne
-  @JoinColumn(name = "currency_id")
+  @JoinColumn(name = "currency_pair_id")
   @JsonIgnore
-  private Currency currency;
+  private CurrencyPair currencyPair;
 
 }

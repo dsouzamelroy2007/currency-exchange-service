@@ -15,12 +15,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CurrencyExchangeRate implements Serializable {
 
+  private String fromCurrency;
   private String toCurrency;
   private Double exchangeRate;
 
   private LocalDate date;
 
-  public CurrencyExchangeRate(String currency){
-    this.toCurrency = currency;
-  }
 }

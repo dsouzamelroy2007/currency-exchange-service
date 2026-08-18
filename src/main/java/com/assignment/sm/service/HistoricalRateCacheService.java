@@ -1,6 +1,6 @@
 package com.assignment.sm.service;
 
-import com.assignment.sm.domain.Currency;
+import com.assignment.sm.domain.CurrencyPair;
 import com.assignment.sm.domain.HistoricalExchangeRate;
 import com.assignment.sm.exception.ExchangeRateSaveException;
 import com.assignment.sm.repository.HistoricalExchangeRateRepository;
@@ -24,13 +24,13 @@ public class HistoricalRateCacheService {
 
   @Async("threadPoolTaskExecutor")
   @Transactional
-  public void saveMissingHistoricalExchangeRates(LocalDate startDate, List<HistoricalExchangeRate> existingHistoricalDates, Currency currency, List<Map<String, Object>> bitcoinHistoricalExhangeRates){
+  public void saveMissingHistoricalExchangeRates(LocalDate startDate, List<HistoricalExchangeRate> existingHistoricalDates, CurrencyPair currencyPair, List<Map<String, Object>> bitcoinHistoricalExhangeRates){
     try{
-      List<HistoricalExchangeRate> missingHistoricalRates = ExchangeRateUtil.getHistoricalExchangeRatesToBeSaved(startDate, existingHistoricalDates, currency, bitcoinHistoricalExhangeRates);
+      List<HistoricalExchangeRate> missingHistoricalRates = ExchangeRateUtil.getHistoricalExchangeRatesToBeSaved(startDate, existingHistoricalDates, currencyPair, bitcoinHistoricalExhangeRates);
       historicalExchangeRateRepository.saveAll(missingHistoricalRates);
     }catch (Exception e){
       log.error("Error while saving missing historical dates to local storage",e);
-      throw new ExchangeRateSaveException(HttpStatus.INTERNAL_SERVER_ERROR, e.getCause());
+      throw new ExchangeRateSaveException(HttpStatus.INTERNAL_SERVER_ERROR, e);
     }
     log.info("Missing historical dates saved successfully");
   }
