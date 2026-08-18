@@ -1,6 +1,6 @@
 package com.assignment.sm.util;
 
-import com.assignment.sm.domain.Currency;
+import com.assignment.sm.domain.CurrencyPair;
 import com.assignment.sm.domain.HistoricalExchangeRate;
 import com.assignment.sm.exception.CurrencyNotFoundException;
 import com.assignment.sm.exception.ExchangeRateParseException;
@@ -18,26 +18,25 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.jni.Local;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 
 @Slf4j
 public class ExchangeRateUtil {
 
-  private static final String key = "last";
-
   private static final ZoneId zoneId = ZoneId.systemDefault();
 
-  public static CurrencyExchangeRate getCurrencyExchangeRate(String currencyName, Map<String, Object> bitcoinExhangeRates, CurrencyExchangeRate currencyExchangeRate){
-    Map<String, Object> currencyRateFields = (Map<String, Object>) bitcoinExhangeRates.get(currencyName);
-    if(currencyRateFields == null){
-      log.error("Error while fetching the exchange rate for currency : "+currencyName);
+  public static CurrencyExchangeRate getCurrencyExchangeRate(String fromCurrency, String toCurrency, Map<String, Object> exchangeRates, CurrencyExchangeRate currencyExchangeRate){
+    Object rateValue = exchangeRates.get(toCurrency);
+    if(rateValue == null){
+      log.error("Error while fetching the exchange rate for currency : "+toCurrency);
       throw new CurrencyNotFoundException(HttpStatus.INTERNAL_SERVER_ERROR, "Target Currency not recognised");
     }
-    currencyExchangeRate.setExchangeRate(Double.valueOf(currencyRateFields.get(key).toString()));
+    currencyExchangeRate.setFromCurrency(fromCurrency);
+    currencyExchangeRate.setToCurrency(toCurrency);
+    currencyExchangeRate.setExchangeRate(Double.valueOf(rateValue.toString()));
     currencyExchangeRate.setDate(LocalDate.now());
-    log.info("Exchange rate fetched for {} at {} is : " +currencyExchangeRate.getExchangeRate(), currencyName, Instant.now());
+    log.info("Exchange rate fetched for {}->{} at {} is : " +currencyExchangeRate.getExchangeRate(), fromCurrency, toCurrency, Instant.now());
     return currencyExchangeRate;
   }
 
@@ -96,27 +95,41 @@ public class ExchangeRateUtil {
     return historicalExchangeRateURL.toString();
   }
 
-  public static List<HistoricalExchangeRate> getHistoricalExchangeRatesToBeSaved(LocalDate startDate, List<HistoricalExchangeRate> existingHistoricalRates, Currency currency, List<Map<String,Object>> bitcoinHistoricalRateList)
+  public static String getURLStringToFetchRealTimeExchangeRate(String exchangeRateBaseUrl, String fromCurrencyName, List<String> toCurrencyNames){
+    StringBuilder realTimeExchangeRateURL = new StringBuilder();
+    realTimeExchangeRateURL.append(exchangeRateBaseUrl);
+    realTimeExchangeRateURL.append("?fsym="+fromCurrencyName);
+    realTimeExchangeRateURL.append("&tsyms="+String.join(",", toCurrencyNames));
+    log.info(" The URL formed to Fetch Real Time Exchange Rates from Server: "+realTimeExchangeRateURL.toString());
+    return realTimeExchangeRateURL.toString();
+  }
+
+  public static List<HistoricalExchangeRate> getHistoricalExchangeRatesToBeSaved(LocalDate startDate, List<HistoricalExchangeRate> existingHistoricalRates, CurrencyPair currencyPair, List<Map<String,Object>> bitcoinHistoricalRateList)
   {
       Set<LocalDate> uniqueDates = existingHistoricalRates.stream()
                                                           .map(rate -> rate.getDate())
                                                           .collect(Collectors.toSet());
-      final List<CurrencyExchangeRate> currencyExchangeRates = parseCurrencyExchangeRates(currency.getAbbreviation(), startDate, bitcoinHistoricalRateList, uniqueDates);
+      String fromAbbreviation = currencyPair.getFromCurrency().getAbbreviation();
+      String toAbbreviation = currencyPair.getToCurrency().getAbbreviation();
+      final List<CurrencyExchangeRate> currencyExchangeRates = parseCurrencyExchangeRates(fromAbbreviation, toAbbreviation, startDate, bitcoinHistoricalRateList, uniqueDates);
       final LocalDateTime timestamp = LocalDateTime.now();
       return currencyExchangeRates.stream()
-          .map(currencyExchangeRate -> getHistoricalExchangeRateFromCurrencyExchangeRateObject(currency, currencyExchangeRate, timestamp))
+          .map(currencyExchangeRate -> getHistoricalExchangeRateFromCurrencyExchangeRateObject(currencyPair, currencyExchangeRate, timestamp))
           .collect(Collectors.toList());
 
   }
 
   public static List<CurrencyExchangeRate> getHistoricalExchangeRatesToCurrencyExchangeRateDTO(LocalDate startDate,
-                                                                                              String currencyAbrreviation,
+                                                                                              CurrencyPair currencyPair,
                                                                                               List<HistoricalExchangeRate> existingHistoricalRates,
                                                                                               List<Map<String,Object>> bitcoinHistoricalRateList){
 
+      String fromAbbreviation = currencyPair.getFromCurrency().getAbbreviation();
+      String toAbbreviation = currencyPair.getToCurrency().getAbbreviation();
 
       final List<CurrencyExchangeRate> historicalExchangeRateList = existingHistoricalRates.stream()
-                                                              .map(rate -> new CurrencyExchangeRate(rate.getCurrency().getAbbreviation(),
+                                                              .map(rate -> new CurrencyExchangeRate(fromAbbreviation,
+                                                                                                    toAbbreviation,
                                                                                                     rate.getRate(),
                                                                                                     rate.getDate()
                                                                   )
@@ -125,12 +138,12 @@ public class ExchangeRateUtil {
        Set<LocalDate> uniqueDates = existingHistoricalRates.stream()
                                                               .map(rate -> rate.getDate())
                                                               .collect(Collectors.toSet());
-      historicalExchangeRateList.addAll(parseCurrencyExchangeRates(currencyAbrreviation, startDate, bitcoinHistoricalRateList, uniqueDates));
+      historicalExchangeRateList.addAll(parseCurrencyExchangeRates(fromAbbreviation, toAbbreviation, startDate, bitcoinHistoricalRateList, uniqueDates));
       historicalExchangeRateList.sort(Comparator.comparing( CurrencyExchangeRate :: getDate, LocalDate::compareTo));
       return historicalExchangeRateList;
   }
 
-  private static List<CurrencyExchangeRate> parseCurrencyExchangeRates(String currencyAbrreviation, LocalDate startDate, List<Map<String,Object>> bitcoinHistoricalRateList, Set<LocalDate> uniqueDates){
+  private static List<CurrencyExchangeRate> parseCurrencyExchangeRates(String fromCurrencyAbbreviation, String toCurrencyAbbreviation, LocalDate startDate, List<Map<String,Object>> bitcoinHistoricalRateList, Set<LocalDate> uniqueDates){
 
     final List<CurrencyExchangeRate> currencyExchangeRates = new ArrayList<>();
     if(!CollectionUtils.isEmpty(bitcoinHistoricalRateList)){
@@ -150,7 +163,8 @@ public class ExchangeRateUtil {
                             .toLocalDate();
                         if (!rateDate.isBefore(startDate) && !uniqueDates.contains(rateDate)) {
                           currencyExchangeRates.add(new CurrencyExchangeRate(
-                              currencyAbrreviation,
+                              fromCurrencyAbbreviation,
+                              toCurrencyAbbreviation,
                               exchangeRate,
                               rateDate));
                         }
@@ -159,7 +173,7 @@ public class ExchangeRateUtil {
 
             } catch (Exception e) {
               log.error("Error while parsing historical server rates", e);
-              throw new ExchangeRateParseException(HttpStatus.INTERNAL_SERVER_ERROR, e.getCause());
+              throw new ExchangeRateParseException(HttpStatus.INTERNAL_SERVER_ERROR, e);
             }
           }
       );
@@ -167,11 +181,11 @@ public class ExchangeRateUtil {
     return currencyExchangeRates;
   }
 
-  private static HistoricalExchangeRate getHistoricalExchangeRateFromCurrencyExchangeRateObject(Currency currency, CurrencyExchangeRate currencyExchangeRate, LocalDateTime timestamp){
+  private static HistoricalExchangeRate getHistoricalExchangeRateFromCurrencyExchangeRateObject(CurrencyPair currencyPair, CurrencyExchangeRate currencyExchangeRate, LocalDateTime timestamp){
     return new HistoricalExchangeRate(null,
                                         currencyExchangeRate.getExchangeRate(),
                                         currencyExchangeRate.getDate(),
                                         timestamp,
-                                        currency);
+                                        currencyPair);
   }
 }

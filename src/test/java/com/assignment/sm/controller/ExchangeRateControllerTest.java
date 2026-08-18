@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.assignment.sm.domain.Currency;
+import com.assignment.sm.domain.CurrencyPair;
 import com.assignment.sm.exception.ExchangeRateFetchException;
 import com.assignment.sm.exception.ExchangeRateParseException;
 import com.assignment.sm.exception.InvalidInputException;
@@ -19,14 +19,11 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -51,13 +48,13 @@ public class ExchangeRateControllerTest {
   @BeforeEach
   public void setUp(){
     exchangeRate = MockDataCreator.currencyExchangeLiveRate();
-    Currency currency = MockDataCreator.getCurrencyObjectForTest();
-    historicalExchangeRates = MockDataCreator.currencyExchangeHistoricalRates(currency);
+    CurrencyPair currencyPair = MockDataCreator.getCurrencyPairForTest();
+    historicalExchangeRates = MockDataCreator.currencyExchangeHistoricalRates(currencyPair);
   }
 
   @Test
   public void testGetLiveRateis404() throws Exception{
-    when(exchangeRateService.getCurrencyExchangeRate())
+    when(exchangeRateService.getLiveRate(anyString(), anyString()))
                 .thenReturn(exchangeRate);
 
     this.mockMvc.perform(get("/exchange1/liveRate")
@@ -67,22 +64,28 @@ public class ExchangeRateControllerTest {
   }
 
   @Test
+  public void testGetLiveRateisMissingParams() throws Exception{
+    this.mockMvc.perform(get("/exchange/liveRate")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError())
+                .andReturn();
+  }
+
+  @Test
   public void testGetLiveRateis500() throws Exception{
-    ExchangeRateResponse response = MockDataCreator.getResponseForLiveRate();
-    when(exchangeRateService.getCurrencyExchangeRate())
+    when(exchangeRateService.getLiveRate(anyString(), anyString()))
                 .thenThrow(new ExchangeRateFetchException("Dummy exception"));
 
-    this.mockMvc.perform(get("/exchange/liveRate"))
+    this.mockMvc.perform(get("/exchange/liveRate?from=BTC&to=USD"))
                 .andExpect(status().isInternalServerError());
   }
 
   @Test
   public void testGetLiveRateisOk() throws Exception {
-    ExchangeRateResponse response = MockDataCreator.getResponseForLiveRate();
-    when(exchangeRateService.getCurrencyExchangeRate())
+    when(exchangeRateService.getLiveRate(anyString(), anyString()))
                 .thenReturn(exchangeRate);
 
-    this.mockMvc.perform(get("/exchange/liveRate"))
+    this.mockMvc.perform(get("/exchange/liveRate?from=BTC&to=USD"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -91,7 +94,7 @@ public class ExchangeRateControllerTest {
 
   @Test
   public void testGetHistoricalRatesis404() throws Exception{
-    when(exchangeRateService.getHistoricalExchangeRates(anyString(), any(LocalDate.class), any(LocalDate.class)))
+    when(exchangeRateService.getHistoricalExchangeRates(anyString(), anyString(), any(LocalDate.class), any(LocalDate.class)))
                .thenReturn(historicalExchangeRates);
 
     MvcResult mvcResult = this.mockMvc.perform(get("/exchange/historicalRate")
@@ -103,32 +106,29 @@ public class ExchangeRateControllerTest {
 
   @Test
   public void testGetHistoricalRatesis500() throws Exception{
-    ExchangeRateResponse response = MockDataCreator.getResponseForHistoricalRates();
-    when(exchangeRateService.getHistoricalExchangeRates(anyString(), any(LocalDate.class), any(LocalDate.class)))
+    when(exchangeRateService.getHistoricalExchangeRates(anyString(), anyString(), any(LocalDate.class), any(LocalDate.class)))
                 .thenThrow(new ExchangeRateParseException("Dummy exception"));
 
-   this.mockMvc.perform(get("/exchange/historicalRate?startDate=2021-01-20&endDate=2021-03-11"))
+   this.mockMvc.perform(get("/exchange/historicalRate?from=BTC&to=USD&startDate=2021-01-20&endDate=2021-03-11"))
                 .andExpect(status().isInternalServerError());
   }
 
   @Test
   public void testGetHistoricalRatesisis400() throws Exception{
-    ExchangeRateResponse response = MockDataCreator.getResponseForHistoricalRates();
-    when(exchangeRateService.getHistoricalExchangeRates(anyString(), any(LocalDate.class), any(LocalDate.class)))
+    when(exchangeRateService.getHistoricalExchangeRates(anyString(), anyString(), any(LocalDate.class), any(LocalDate.class)))
         .thenThrow(new InvalidInputException("Invalid Dates"));
 
-    this.mockMvc.perform(get("/exchange/historicalRate?startDate=2021-01-20&endDate=2021-01-11"))
+    this.mockMvc.perform(get("/exchange/historicalRate?from=BTC&to=USD&startDate=2021-01-20&endDate=2021-01-11"))
         .andExpect(status().isBadRequest());
   }
 
 
   @Test
   public void testGetHistoricalRatesisOk() throws Exception {
-    ExchangeRateResponse response = MockDataCreator.getResponseForLiveRate();
-    when(exchangeRateService.getHistoricalExchangeRates(anyString(), any(LocalDate.class), any(LocalDate.class)))
+    when(exchangeRateService.getHistoricalExchangeRates(anyString(), anyString(), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(historicalExchangeRates);
 
-    this.mockMvc.perform(get("/exchange/historicalRate?startDate=2021-01-20&endDate=2021-03-11"))
+    this.mockMvc.perform(get("/exchange/historicalRate?from=BTC&to=USD&startDate=2021-01-20&endDate=2021-03-11"))
                 .andExpect(status().isOk());
 
   }

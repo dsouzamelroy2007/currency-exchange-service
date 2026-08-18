@@ -12,7 +12,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class ExchangeRateResponse implements Serializable {
-  private String fromCurrency;
 
   List<CurrencyExchangeRate> exchangeRates;
 
