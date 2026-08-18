@@ -45,6 +45,9 @@ public class ExchangeRateService {
   RestService restService;
 
   @Autowired
+  ExchangeRateApiProviderService exchangeRateApiProviderService;
+
+  @Autowired
   HistoricalExchangeRateRepository historicalExchangeRateRepository;
 
   @Autowired
@@ -65,8 +68,16 @@ public class ExchangeRateService {
   @Cacheable(value = "liveRates", key = "#from + '_' + #to")
   public CurrencyExchangeRate getLiveRate(String from, String to){
     currencyPairService.findOrCreatePair(from, to);
-    Map<String, Object> exchangeRates = restService.get(ExchangeRateUtil.getURLStringToFetchRealTimeExchangeRate(exchangeAPI, from, List.of(to)), Map.class);
+    Map<String, Object> exchangeRates = fetchExchangeRates(from, List.of(to));
     return ExchangeRateUtil.getCurrencyExchangeRate(from, to, exchangeRates, new CurrencyExchangeRate());
+  }
+
+  private Map<String, Object> fetchExchangeRates(String from, List<String> toCurrencies){
+    Map<String, Object> freeProviderRates = exchangeRateApiProviderService.getRatesForBase(from);
+    if(freeProviderRates != null && toCurrencies.stream().allMatch(freeProviderRates::containsKey)){
+      return freeProviderRates;
+    }
+    return restService.get(ExchangeRateUtil.getURLStringToFetchRealTimeExchangeRate(exchangeAPI, from, toCurrencies), Map.class);
   }
 
   public List<CurrencyExchangeRate> getHistoricalExchangeRates(String from, String to, LocalDate startDate, LocalDate endDate){
@@ -129,7 +140,7 @@ public class ExchangeRateService {
 
   private void refreshAndPushRatesForBase(String from, List<String> toCurrencies){
     try{
-      Map<String, Object> exchangeRates = restService.get(ExchangeRateUtil.getURLStringToFetchRealTimeExchangeRate(exchangeAPI, from, toCurrencies), Map.class);
+      Map<String, Object> exchangeRates = fetchExchangeRates(from, toCurrencies);
       toCurrencies.forEach(to -> publishLiveRate(from, to, exchangeRates));
     }catch (Exception e){
       log.error("Error while refreshing subscribed live rates for base currency {}", from, e);

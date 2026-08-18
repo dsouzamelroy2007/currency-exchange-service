@@ -16,11 +16,16 @@ public class CacheConfig {
   @Value("${cache.liveRates.ttlSeconds}")
   private long liveRatesTtlSeconds;
 
+  @Value("${externalRatesApi.cache.ttlSeconds}")
+  private long externalBaseRatesTtlSeconds;
+
   @Bean
   public CacheManager cacheManager() {
-    CaffeineCacheManager cacheManager = new CaffeineCacheManager("liveRates");
-    cacheManager.setCaffeine(Caffeine.newBuilder()
-        .expireAfterWrite(Duration.ofSeconds(liveRatesTtlSeconds)));
+    CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+    cacheManager.registerCustomCache("liveRates",
+        Caffeine.newBuilder().expireAfterWrite(Duration.ofSeconds(liveRatesTtlSeconds)).build());
+    cacheManager.registerCustomCache("externalBaseRates",
+        Caffeine.newBuilder().expireAfterWrite(Duration.ofSeconds(externalBaseRatesTtlSeconds)).build());
     return cacheManager;
   }
 }

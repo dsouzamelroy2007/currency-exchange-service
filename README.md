@@ -85,4 +85,28 @@ This will create a docker image and run the application in a container.
 2. Alternatively, it can be run using maven without a docker container as well using
 mvn spring-boot:run
 3. Also, we can start it from an IDE like eclipse or IntelliJ once the project has been imported and built using maven.
+
+## Decisions
+
+- **Live-rate provider: exchangerate-api.com (free/open tier) as primary, CryptoCompare as fallback.**
+  CryptoCompare's `realTime.exchangeAPI` (`min-api.cryptocompare.com/data/price`) now requires an
+  API key we don't have, so every live-rate call was failing. [exchangerate-api.com's free/open
+  endpoint](https://www.exchangerate-api.com/docs/free) (`GET https://open.er-api.com/v6/latest/{base}`)
+  needs no key and returns rates for every target currency against one base in a single call, but
+  it's **fiat-only** (a crypto base like `BTC` comes back `{"result":"error","error-type":"unsupported-code"}`)
+  and only refreshes once every 24h.
+  `ExchangeRateApiProviderService.getRatesForBase(from)` calls it first; `ExchangeRateService`
+  uses that result only if every requested `to` currency is present in it, otherwise falls back to
+  the existing `realTime.exchangeAPI` (CryptoCompare) call unchanged. This means fiat pairs
+  (`USD/EUR`, `USD/GBP`, ...) now get real live rates with no key needed, while crypto pairs
+  (`BTC/USD`, ...) keep the prior CryptoCompare behavior — including needing a key, since we don't
+  have a free crypto-rate source wired in yet.
+- **24h per-base cache, separate from the per-pair `liveRates` cache.** Since the provider updates
+  once a day and one call covers every target currency for that base, responses are cached by
+  `from` currency alone (`externalBaseRates`, TTL `externalRatesApi.cache.ttlSeconds`, default
+  86400s) rather than per pair — so `USD/EUR` and `USD/GBP` share one cached call instead of two.
+  Provider failures (network error, unsupported base) are **not** cached (`unless = "#result == null"`
+  on the `@Cacheable`), so a transient outage doesn't lock out the fallback path for a full day.
+  This is a second Caffeine cache alongside the existing `liveRates` one (`CacheConfig` now
+  registers both via `registerCustomCache`, each with its own TTL from `application.properties`).
  
