@@ -14,6 +14,18 @@ npm run test     # Vitest + React Testing Library
 
 Run `mvn spring-boot:run` in the repo root alongside `npm run dev` for a working local setup.
 
+## Screenshots
+
+| Light | Dark |
+| --- | --- |
+| ![Dashboard, light mode](docs/screenshots/dashboard-light.png) | ![Dashboard, dark mode](docs/screenshots/dashboard-dark.png) |
+
+Live USD/EUR and USD/GBP rates from the exchangerate-api.com provider, BTC/USD still waiting
+(CryptoCompare fallback needs a key). Palette follows OS `prefers-color-scheme`; each card's accent
+color is a deterministic hash of the pair.
+
+![Currency picker with symbols](docs/screenshots/currency-picker-symbols.png)
+
 ## Decisions
 
 - **Currency symbols: static lookup table, code as fallback.** `knownCurrencies.ts` now carries a

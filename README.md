@@ -1,6 +1,16 @@
 # currency-exchange-service
  REST based microservice with Backend APIs that can give the real time live exchange rate of currencies 
 
+## Screenshots
+
+![Swagger UI](docs/screenshots/swagger-ui.png)
+
+| Live rate (exchangerate-api.com, no key needed) | Historical, tracked pair | Historical, untracked pair |
+| --- | --- | --- |
+| ![Live rate response](docs/screenshots/liverate-response.png) | ![Historical rate for a tracked pair](docs/screenshots/historical-tracked-success.png) | ![Meaningful error for an untracked pair](docs/screenshots/historical-error-response.png) |
+
+The third response shows the meaningful `HistoricalRateUnavailableException` message (see
+Decisions below) instead of the raw upstream exception, for a pair with no accumulated history yet.
 
 Technologies Used
 Frameworks:
