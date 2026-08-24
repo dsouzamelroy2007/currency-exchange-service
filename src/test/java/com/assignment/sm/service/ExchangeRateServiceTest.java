@@ -127,7 +127,10 @@ public class ExchangeRateServiceTest {
   public void testGetHistoricalExchangeRatesFromExchangeServerSuccess(){
     LocalDate startDate = LocalDate.of(2021,03,10);
     LocalDate endDate = LocalDate.of(2021,03,13);
-    String serverExchangeRateFetchURL = "http://xyz.com/historicalRates?fsym=BTC&tsym=USD&limit=1&toTs=1615573800";
+    // 1615593600 = 2021-03-13T00:00:00Z (endDate at start of day, UTC - see the surefire
+    // user.timezone=UTC system property in pom.xml, which is what ExchangeRateUtil's
+    // ZoneId.systemDefault()-derived timestamps are computed against during tests).
+    String serverExchangeRateFetchURL = "http://xyz.com/historicalRates?fsym=BTC&tsym=USD&limit=1&toTs=1615593600";
     List<CurrencyExchangeRate> expectedExchangeRates = MockDataCreator.currencyExchangeHistoricalRates(currencyPair);
     when(currencyPairService.findOrCreatePair("BTC", "USD"))
         .thenReturn(currencyPair);

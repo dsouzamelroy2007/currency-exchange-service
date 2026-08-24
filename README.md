@@ -26,8 +26,6 @@ multiple pairs live and charts their history.
 
 ![Currency picker with symbols](frontend/docs/screenshots/currency-picker-symbols.png)
 
-![Swagger UI](docs/screenshots/swagger-ui.png)
-
 | Live rate (no key needed) | Historical, tracked pair | Historical, untracked pair |
 | --- | --- | --- |
 | ![Live rate response](docs/screenshots/liverate-response.png) | ![Historical rate for a tracked pair](docs/screenshots/historical-tracked-success.png) | ![Meaningful error for an untracked pair](docs/screenshots/historical-error-response.png) |
