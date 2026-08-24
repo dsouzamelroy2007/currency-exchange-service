@@ -8,17 +8,16 @@ import com.assignment.sm.exception.InvalidInputException;
 import com.assignment.sm.model.CurrencyExchangeRate;
 import com.assignment.sm.model.ExchangeRateResponse;
 import com.assignment.sm.service.ExchangeRateService;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
-import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -32,18 +31,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/exchange")
 @Slf4j
-@Api(value = "REST APIs for real-time and historical currency exchange rates" )
+@Tag(name = "exchange-rate-controller", description = "REST APIs for real-time and historical currency exchange rates")
 public class ExchangeRateController {
 
   @Autowired
   private ExchangeRateService exchangeRateService;
 
   @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Success|OK"),
-      @ApiResponse(code = 400, message = "bad request!"),
-      @ApiResponse(code = 404, message = "not found!!!"),
-      @ApiResponse(code = 500, message = "Internal Server Error!!!")})
-  @ApiOperation(value = "Get the real-time exchange rate for a currency pair", tags = "getLatestExchangeRate")
+      @ApiResponse(responseCode = "200", description = "Success|OK"),
+      @ApiResponse(responseCode = "400", description = "bad request!"),
+      @ApiResponse(responseCode = "404", description = "not found!!!"),
+      @ApiResponse(responseCode = "500", description = "Internal Server Error!!!")})
+  @Operation(summary = "Get the real-time exchange rate for a currency pair")
   @RequestMapping(method = RequestMethod.GET, value = "/liveRate")
   public ResponseEntity<ExchangeRateResponse> getLatestExchangeRate(
                                           @RequestParam(required = true) String from,
@@ -63,19 +62,13 @@ public class ExchangeRateController {
   }
 
   @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Success|OK"),
-      @ApiResponse(code = 400, message = "bad request!"),
-      @ApiResponse(code = 404, message = "not found!!!"),
-      @ApiResponse(code = 500, message = "Internal Server Error!!!")})
-  @ApiOperation(value = "Get historical exchange rates for a currency pair from Start Date (yyyy-MM-dd) to End Date (yyyy-MM-dd) ", response = ExchangeRateResponse.class, tags = "getHistoricalExchangeRate")
+      @ApiResponse(responseCode = "200", description = "Success|OK"),
+      @ApiResponse(responseCode = "400", description = "bad request!"),
+      @ApiResponse(responseCode = "404", description = "not found!!!"),
+      @ApiResponse(responseCode = "500", description = "Internal Server Error!!!")})
+  @Operation(summary = "Get historical exchange rates for a currency pair from Start Date (yyyy-MM-dd) to End Date (yyyy-MM-dd)")
   @RequestMapping(method = RequestMethod.GET, value = "/historicalRate")
-  @HystrixCommand(fallbackMethod = "fallback_getHistoricalExchangeRate",
-                  commandProperties = {
-                                         @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "120000")
-                                       },
-                  ignoreExceptions = {InvalidInputException.class, CurrencyNotFoundException.class, ExchangeRateSaveException.class,
-                                      ExchangeRateSaveException.class, ExchangeRateFetchException.class, HistoricalRateUnavailableException.class}
-                  )
+  @CircuitBreaker(name = "historicalRate", fallbackMethod = "fallback_getHistoricalExchangeRate")
   public ResponseEntity getHistoricalExchangeRate(
                                           @RequestParam(required = true) String from,
                                           @RequestParam(required = true) String to,
@@ -99,7 +92,33 @@ public class ExchangeRateController {
   }
 
 
-  public ResponseEntity fallback_getHistoricalExchangeRate(String from, String to, LocalDate startDate, LocalDate endDate){
+  // Resilience4j dispatches to the most-specific fallback overload matching the thrown exception's
+  // type. These re-throw so the domain exceptions below reach ControllerExceptionHandler as
+  // themselves - resilience4j.circuitbreaker...ignoreExceptions in application.properties only
+  // keeps them out of the circuit breaker's failure-rate accounting, it does NOT skip the fallback
+  // dispatch (confirmed live: without these overloads, an ignored exception still lands in the
+  // generic Throwable fallback below and gets mapped to a misleading 502).
+  public ResponseEntity fallback_getHistoricalExchangeRate(String from, String to, LocalDate startDate, LocalDate endDate, InvalidInputException e){
+    throw e;
+  }
+
+  public ResponseEntity fallback_getHistoricalExchangeRate(String from, String to, LocalDate startDate, LocalDate endDate, CurrencyNotFoundException e){
+    throw e;
+  }
+
+  public ResponseEntity fallback_getHistoricalExchangeRate(String from, String to, LocalDate startDate, LocalDate endDate, ExchangeRateSaveException e){
+    throw e;
+  }
+
+  public ResponseEntity fallback_getHistoricalExchangeRate(String from, String to, LocalDate startDate, LocalDate endDate, ExchangeRateFetchException e){
+    throw e;
+  }
+
+  public ResponseEntity fallback_getHistoricalExchangeRate(String from, String to, LocalDate startDate, LocalDate endDate, HistoricalRateUnavailableException e){
+    throw e;
+  }
+
+  public ResponseEntity fallback_getHistoricalExchangeRate(String from, String to, LocalDate startDate, LocalDate endDate, Throwable t){
     return new ResponseEntity("Request made to the Currency Exchange server for historical dates has timed out. Please try again after sometime.", HttpStatus.BAD_GATEWAY);
   }
 }

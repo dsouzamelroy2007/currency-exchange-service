@@ -1,29 +1,21 @@
 package com.assignment.sm;
 
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.TimeZone;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.Contact;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
 @EnableAsync
-@EnableSwagger2
-@EnableHystrix
 public class ExchangeService {
 
   public static void main(String[] args) {
@@ -56,24 +48,12 @@ public class ExchangeService {
   }
 
   @Bean
-  public Docket apis(){
-    return new Docket(DocumentationType.SWAGGER_2)
-                                  .select()
-                                  .apis(RequestHandlerSelectors.basePackage("com.assignment.sm.controller"))
-                                  .paths(PathSelectors.any())
-                                  .build()
-                                  .pathMapping("")
-                                  .apiInfo(getApiInfo());
-  }
-
-  private ApiInfo getApiInfo() {
-    return new ApiInfo("Currency Exchange Service",
-                "Real time & Historical exchange rates",
-                   "1.0","wwww.xyz.com",
-                            new Contact("dev_team","","tech-support@.com"),
-                    null,
-                  null,
-                  Collections.emptyList());
+  public OpenAPI apiInfo() {
+    return new OpenAPI().info(new Info()
+        .title("Currency Exchange Service")
+        .description("Real time & Historical exchange rates")
+        .version("1.0")
+        .contact(new Contact().name("dev_team").email("tech-support@.com")));
   }
 
 }
