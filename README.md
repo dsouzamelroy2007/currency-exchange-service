@@ -37,8 +37,8 @@ More frontend screenshots and its own decisions: [frontend/README.md](frontend/R
 
 ## Tech stack
 
-**Backend**: Java 11, Spring Boot 2, Spring WebSocket (STOMP/SockJS), Hystrix, Spring Data JPA +
-H2 (file-based) + Flyway, Caffeine caching, Springfox/Swagger, Maven, Docker.
+**Backend**: Java 21, Spring Boot 3.5, Spring WebSocket (STOMP/SockJS), Resilience4j, Spring Data
+JPA + H2 (file-based) + Flyway, Caffeine caching, springdoc-openapi/Swagger, Maven, Docker.
 **Frontend**: React, TypeScript, Vite, `@stomp/stompjs` + `sockjs-client`, Recharts, Vitest +
 React Testing Library.
 
@@ -101,8 +101,9 @@ instead of waiting for the next tick.
 **Historical rate**: DB-first via `HistoricalExchangeRateRepository`. Missing dates are fetched
 from CryptoCompare when possible; every live push also records that day's rate
 (`HistoricalRateCacheService.recordTodaysRateIfMissing`), so any pair tracked live accumulates real
-historical data going forward. Protected by a Hystrix circuit breaker (120s timeout, 502 fallback
-on genuine timeout); domain exceptions bypass that fallback and reach the client as themselves.
+historical data going forward. Protected by a Resilience4j `@CircuitBreaker` (502 fallback on
+failure); domain exceptions get their own fallback overload that re-throws them, so they reach the
+client as themselves instead of the generic fallback text.
 
 **Caching**: two independent Caffeine caches (`CacheConfig`) — `liveRates` (per-pair, short TTL)
 and `externalBaseRates` (per-base-currency, 24h TTL, provider failures not cached).
@@ -149,9 +150,10 @@ enforces `websocket.maxActivePairs`, and fires an event on a pair's first subscr
   that specific `ExchangeRateFetchException` (not a bare `Exception`, so unrelated bugs aren't
   masked as "no data") and raises `HistoricalRateUnavailableException` with a message naming the
   pair, the requested range, how many days were already tracked locally, and that rates accumulate
-  automatically once a pair is tracked live. It's added to the Hystrix `ignoreExceptions` list on
-  `/historicalRate` (alongside the other domain exceptions) so it reaches the client as itself
-  instead of being replaced by the generic Hystrix-timeout fallback text.
+  automatically once a pair is tracked live. It gets its own fallback-method overload on
+  `/historicalRate` (alongside the other domain exceptions — see the Java 21/Spring Boot 3
+  migration entry below) so it reaches the client as itself instead of being replaced by the
+  generic fallback text.
 - **Fixed a latent Hibernate/H2 date read bug, surfaced by the above.** `HistoricalExchangeRate.date`
   columns were reading back one day off from what was actually stored (confirmed by querying the H2
   file directly) whenever the JVM's default timezone wasn't UTC at the moment the DB
@@ -163,3 +165,24 @@ enforces `websocket.maxActivePairs`, and fires an event on a pair's first subscr
   `SpringApplication.run(...)`, so every bean is created under a consistently-UTC default zone.
   This was never exercised before today since no historical write+read had ever succeeded in this
   environment (CryptoCompare always 401'd); it's not new, just newly visible.
+- **Java 21 / Spring Boot 3.5.16, replacing Hystrix with Resilience4j and Springfox with
+  springdoc-openapi.** Spring Boot 2.3.x's bundled ASM can't parse Java 21 classfiles at all
+  (`Unsupported class file major version 65`), so a real Java 21 target required the Boot
+  upgrade, not just a compiler flag. Landed on 3.5.16 (the final, most mature 3.x release) rather
+  than the now-current Boot 4.x — Spring's own guidance is to never skip a major version in one
+  migration. Hystrix (deprecated by Netflix since 2018, no module compatible with Boot 3+) becomes
+  `@CircuitBreaker` only, deliberately without `@TimeLimiter` — each external call this endpoint
+  makes is already capped by `RestTemplate`'s own 10s timeout, so Hystrix's 120s ceiling was
+  already a redundant outer bound, and adding `@TimeLimiter` would require converting the endpoint
+  to `CompletableFuture` for little real gain. **Gotcha**: Resilience4j's `ignoreExceptions` config
+  only keeps an exception out of the circuit breaker's failure-rate accounting — it does *not* skip
+  the fallback method the way Hystrix's `ignoreExceptions` did (confirmed live: without further
+  changes, an "ignored" `HistoricalRateUnavailableException` still landed in the generic
+  `Throwable` fallback and got mapped to a misleading 502 instead of its real 404). Fixed with
+  per-exception-type fallback method overloads that just re-throw — Resilience4j dispatches to the
+  most-specific matching overload for the thrown type. Springfox is unmaintained and never got a
+  Jakarta-compatible release, so it's replaced with springdoc-openapi (Swagger UI now redirects
+  from `/swagger-ui.html` to `/swagger-ui/index.html`). **Second gotcha**: removing the old
+  `maven-compiler-plugin` block broke `@RequestParam(required = true) String from` (no explicit
+  name) with "parameter name information not available via reflection" — `spring-boot-starter-parent`
+  doesn't set the `-parameters` javac flag by default, so it had to be added back explicitly.
