@@ -30,11 +30,11 @@ fi
 
 
 
-docker container rm btcexchangeservice
-docker container run -d --name btcexchangeservice -p 8080:8080 currency-exchange-service . 
+docker container rm currencyexchangeservice
+docker container run -d --name currencyexchangeservice -p 8080:8080 currency-exchange-service . 
 if [ "$?" -ne 0 ]; then
 	echo "================================="
-    echo "Error starting docker container btcexchangeservice!"
+    echo "Error starting docker container currencyexchangeservice!"
     echo "================================="
     exit 1
 else

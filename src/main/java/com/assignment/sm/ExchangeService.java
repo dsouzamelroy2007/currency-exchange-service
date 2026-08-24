@@ -24,7 +24,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableAsync
 @EnableSwagger2
 @EnableHystrix
-public class BitcoinExchangeService {
+public class ExchangeService {
 
   public static void main(String[] args) {
     // Must happen before the Spring context starts: the DataSource/connection pool (and H2's
@@ -33,7 +33,7 @@ public class BitcoinExchangeService {
     // connections pinned to the JVM's original default zone, causing DATE columns to read back
     // shifted by a day around DST boundaries.
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-    SpringApplication.run(BitcoinExchangeService.class, args);
+    SpringApplication.run(ExchangeService.class, args);
   }
 
   @Bean
@@ -67,7 +67,7 @@ public class BitcoinExchangeService {
   }
 
   private ApiInfo getApiInfo() {
-    return new ApiInfo("Bitcoin Exchange Service",
+    return new ApiInfo("Currency Exchange Service",
                 "Real time & Historical exchange rates",
                    "1.0","wwww.xyz.com",
                             new Contact("dev_team","","tech-support@.com"),

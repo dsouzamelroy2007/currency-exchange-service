@@ -26,3 +26,15 @@ replay_pid*
 # File-based H2 database store
 /data/
 /target
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# Frontend (frontend/ has its own .gitignore too, this covers the root just in case)
+/frontend/node_modules
+/frontend/dist

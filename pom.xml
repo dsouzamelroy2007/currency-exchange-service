@@ -150,7 +150,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <mainClass>com.assignment.sm.BitcoinExchangeService</mainClass>
+          <mainClass>com.assignment.sm.ExchangeService</mainClass>
         </configuration>
         <executions>
           <execution>
